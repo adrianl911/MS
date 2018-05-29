@@ -1,5 +1,5 @@
 from flask import Flask
-from flask_ask import Ask, statement,question
+from flask_ask import Ask, statement, question
 from flask import request
 from mutagen.mp3 import MP3
 
@@ -12,10 +12,8 @@ import time
 import vlc   
 
 player = vlc.MediaPlayer()
-
 counter = 0
 
-#data strcuture that stores the informations that will be used to calculate the mood
 state = {
   "Happy": 0, 
   "Neutral": 0,
@@ -23,8 +21,7 @@ state = {
   "Sad" : 0
   }
 
-#serial channel for the communication wih Arduino  
-Arduino = serial.Serial("/dev/ttyACM0",9600)
+#Arduino = serial.Serial("/dev/ttyACM0",9600)
 
 
 def calculateState( mood ):
@@ -44,35 +41,28 @@ def calculateState( mood ):
 def handler():
     global counter
     global player
-    
-    #check if another song is currently playing
     if player.is_playing():
-        return statement("I am already playing a song, wait!")
+        return statement("Humour dj is already playing a song, wait!")
     else:
-        return question("Welcome! I can play a song for you based on your current mood. First of all, how are you?")
+        return question("Hi! I can play a song for you based on your current mood. First of all, how are you?")
 
-#handle the response for the four moods
 @ask.intent('Happy')
 def happy():
     global counter
     global state
     counter += 1
-    #if we asked only the first question, counter==1 and we ask the second
     if counter == 1:
         state["Happy"]+= 1
         return question("And now, tell me, how was your day?")
-    #else, calculate the mood with the chooseSong() function
     elif counter == 2:
         counter = 0
         state["Happy"]+= 1
-        
         chooseSong()
         
-        return statement("This is the song  I chose for you!")
+        return statement("This is the song  i chose for you, i hope you like it! ")
         
         
         
-#same as above, for every mood    
 @ask.intent('Neutral')
 def neutral():
     global counter
@@ -87,7 +77,7 @@ def neutral():
 
         chooseSong()
         
-        return statement("This is the song  I chose for you!")
+        return statement("This is the song  i chose for you, i hope you like it!")
 
 @ask.intent('Angry')
 def angry():
@@ -102,7 +92,7 @@ def angry():
         state["Angry"]+= 1
         chooseSong()
         
-        return statement("This is the song  I chose for you!")
+        return statement("This is the song  i chose for you, i hope you like it!")
 
 @ask.intent('Sad')
 def sad():
@@ -118,39 +108,36 @@ def sad():
         counter = 0
         state["Sad"]+= 1
         chooseSong()
-        return statement("This is the song  I chose for you!")
+        return statement("This is the song  i chose for you, i hope you like it!")
         
         
-#calculate the mood, play the song and send a signal to Ardunino
 def chooseSong():
     global ser
     global player 
-    
+    global state
     if state["Happy"] == 2 or ( state["Happy"] ==1 and state["Angry"]==1  ) or (state["Happy"] ==1 and state["Sad"]==1 ):
-        player = vlc.MediaPlayer("/home/pi/Desktop/Happy/PharrellWilliams-Happy.mp3")
+        player = vlc.MediaPlayer("/home/pi/MS/music/happy/Mika - We Are Golden.mp3")
         player.play()
-        Arduino.write(b'H')
-  
+        #Arduino.write(b'H')
+      
     if state["Neutral"] == 2 or (state["Happy"] ==1 and state["Neutral"]==1  ):
-        player = vlc.MediaPlayer("/home/pi/Desktop/Neutral/Riders_on_the_Storm.mp3")
+        player = vlc.MediaPlayer("/home/pi/MS/music/neutral/Florence + The Machine - Dog Days Are Over (2010 Version).mp3")
         player.play()
-        Arduino.write(b'N')
+        #Arduino.write(b'N')
         
-    #if Angry
     if state["Angry"] == 2 or (state["Angry"]==1 and state["Sad"]==1  ) or (state["Angry"]==1 and state["Neutral"]==1 ):
-        player = vlc.MediaPlayer("/home/pi/Desktop/Angry/Enter_Sandman.mp3")
+        player = vlc.MediaPlayer("/home/pi/MS/music/angry/Disturbed - Land Of Confusion [Official Music Video].mp3")
         player.play()
-        Arduino.write(b'A')
+        #Arduino.write(b'A')
         
-    #if Sad
     if state["Sad"] == 2 or (state["Sad"]==1 and state["Neutral"]==1 ):
-        player = vlc.MediaPlayer("/home/pi/Desktop/Sad/Wish_You_Were_Here.mp3")
+        player = vlc.MediaPlayer("/home/pi/MS/music/sad/R I T U A L - Josephine.mp3.mp3")
         player.play()
-        Arduino.write(b'S')
+        #Arduino.write(b'S')
     state = {"Happy": 0, "Neutral": 0,"Angry": 0, "Sad" : 0}
     
-    return;
+    return
 
-#the server listens on localhost:5000
 if __name__ == '__main__':
     app.run(host='localhost', port = 5000, debug = True)
+
